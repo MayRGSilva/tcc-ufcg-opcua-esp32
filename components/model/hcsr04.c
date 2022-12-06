@@ -28,6 +28,8 @@
 #define PIN_TRIGGER 18
 #define PIN_ECHO 19
 
+double distance = 0.;
+
 static void HCSR04_tx_init()
 {
 rmt_config_t rmt_tx;
@@ -87,7 +89,40 @@ rmt_wait_tx_done(RMT_TX_CHANNEL, portMAX_DELAY);
 
 rmt_item32_t* item = (rmt_item32_t*)xRingbufferReceive(rb, &rx_size, 1000);
 distance = 340.29 * ITEM_DURATION(item->duration0) / (1000 * 1000 * 2); // distance in meters
-printf("Distance is %f cm\n", distance * 100); // distance in centimeters
+printf("Distance is %f cm\n\n\n\n\n\n\n", distance * 100 ); // distance in centimeters
+
+vRingbufferReturnItem(rb, (void*) item);
+vTaskDelay(200 / portTICK_PERIOD_MS);
+}
+
+}
+
+void readHCSR04()
+{
+HCSR04_tx_init();
+HCSR04_rx_init();
+
+rmt_item32_t item;
+item.level0 = 1;
+item.duration0 = RMT_TICK_10_US;
+item.level1 = 0;
+item.duration1 = RMT_TICK_10_US; // for one pulse this doesn't matter
+
+size_t rx_size = 0;
+RingbufHandle_t rb = NULL;
+rmt_get_ringbuf_handle(RMT_RX_CHANNEL, &rb);
+rmt_rx_start(RMT_RX_CHANNEL, 1);
+
+double distance = 0;
+
+for(;;)
+{
+rmt_write_items(RMT_TX_CHANNEL, &item, 1, true);
+rmt_wait_tx_done(RMT_TX_CHANNEL, portMAX_DELAY);
+
+rmt_item32_t* item = (rmt_item32_t*)xRingbufferReceive(rb, &rx_size, 1000);
+distance = 340.29 * ITEM_DURATION(item->duration0) / (1000 * 1000 * 2); // distance in meters
+printf("Distance is %f cm\n\n\n\n\n\n\n", distance * 100 ); // distance in centimeters
 
 vRingbufferReturnItem(rb, (void*) item);
 vTaskDelay(200 / portTICK_PERIOD_MS);
