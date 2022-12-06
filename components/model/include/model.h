@@ -5,6 +5,11 @@
 #define DHT22_GPIO 4
 #define RELAY_0_GPIO 32
 #define RELAY_1_GPIO 33
+
+#define TRIGGER_GPIO 18
+#define ECHO_GPIO 19
+#define MAX_DISTANCE_CM 500 // 5m max
+
 // #define RELAY_2_GPIO 26
 // #define RELAY_3_GPIO 27
 
@@ -64,3 +69,16 @@ setRelay1State(UA_Server *server,
 
 void
 addRelay1ControlNode(UA_Server *server);
+
+/* Distance*/
+
+UA_StatusCode
+readCurrentDistance(UA_Server *server,
+                const UA_NodeId *sessionId, void *sessionContext,
+                const UA_NodeId *nodeId, void *nodeContext,
+                UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
+                UA_DataValue *dataValue);
+
+
+void
+addCurrentDistanceDataSourceVariable(UA_Server *server);

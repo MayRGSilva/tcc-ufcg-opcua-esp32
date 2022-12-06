@@ -232,7 +232,6 @@ uint8_t bitInx = 7;
 
 //Read temperature and return it to be used on temperature variable node
 float ReadTemperature(int sensor_gpio){
-	printf("\n\n\n\n\nCheguei aqui\n\n\n\n\n\n");
 	float temperatureFromSensor;
     int ret_ReadDHT = readDHT();
     if (ret_ReadDHT != DHT_OK){

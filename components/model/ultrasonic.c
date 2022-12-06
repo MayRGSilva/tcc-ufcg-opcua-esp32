@@ -36,12 +36,12 @@
  *
  * BSD Licensed as described in the file LICENSE
  */
-#include <esp_idf_lib_helpers.h>
+#include "../esp_idf_lib_helpers/esp_idf_lib_helpers.h"
+#include "../esp_idf_lib_helpers/ets_sys.h"
 #include "ultrasonic.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_timer.h>
-#include <ets_sys.h>
 
 #define TRIGGER_LOW_DELAY 4
 #define TRIGGER_HIGH_DELAY 10
