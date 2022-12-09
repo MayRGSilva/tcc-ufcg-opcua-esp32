@@ -244,9 +244,38 @@ readCurrentDistance(UA_Server *server,
                 const UA_NodeId *nodeId, void *nodeContext,
                 UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
                 UA_DataValue *dataValue) {
-    UA_Float distance;
-    ultrasonic_measure(&ultrassonic_sensor, MAX_DISTANCE_CM, &distance);
-    UA_Variant_setScalarCopy(&dataValue->value, &distance,
+    
+    UA_Float ua_distance;
+    float distance;
+    esp_err_t res;
+
+    ultrasonic_init(&ultrassonic_sensor);
+
+    res = ultrasonic_measure(&ultrassonic_sensor, MAX_DISTANCE_CM, &distance);
+
+    if (res != ESP_OK){
+        printf("Error %d: ", res);
+        switch (res){
+            case ESP_ERR_ULTRASONIC_PING:
+                printf("Cannot ping (device is in invalid state)\n");
+                ua_distance = 0;
+                break;
+            case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
+                printf("Ping timeout (no device found)\n");
+                ua_distance = 0;
+                break;
+            case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
+                printf("Echo timeout (i.e. distance too big)\n");
+                ua_distance = 0;
+                break;
+            default:
+                printf("%s\n", esp_err_to_name(res));
+        }
+    } else {
+        ua_distance = distance*100; //distance in cm
+    }
+
+    UA_Variant_setScalarCopy(&dataValue->value, &ua_distance,
                              &UA_TYPES[UA_TYPES_FLOAT]);
     dataValue->hasValue = true;
     return UA_STATUSCODE_GOOD;
@@ -267,6 +296,7 @@ addCurrentDistanceDataSourceVariable(UA_Server *server) {
     UA_NodeId variableTypeNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
 
     UA_DataSource timeDataSource;
+    ultrasonic_init(&ultrassonic_sensor);
     timeDataSource.read = readCurrentDistance;
     UA_Server_addDataSourceVariableNode(server, currentNodeId, parentNodeId,
                                         parentReferenceNodeId, currentName,

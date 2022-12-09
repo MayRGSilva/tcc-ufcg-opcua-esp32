@@ -20,6 +20,7 @@
 #include "ethernet_connect.h"
 #include "open62541.h"
 #include "DHT22.h"
+#include "ultrasonic.h"
 #include "model.h"
 
 #define EXAMPLE_ESP_MAXIMUM_RETRY 10
