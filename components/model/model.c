@@ -2,6 +2,7 @@
 #include "model.h"
 #include "DHT22.h"
 #include "ultrasonic.h"
+#include "pieces_measurement.h"
 #include "driver/gpio.h"
 
 static void
@@ -298,6 +299,69 @@ addCurrentDistanceDataSourceVariable(UA_Server *server) {
     UA_DataSource timeDataSource;
     ultrasonic_init(&ultrassonic_sensor);
     timeDataSource.read = readCurrentDistance;
+    UA_Server_addDataSourceVariableNode(server, currentNodeId, parentNodeId,
+                                        parentReferenceNodeId, currentName,
+                                        variableTypeNodeId, attr,
+                                        timeDataSource, NULL, NULL);
+}
+
+/* Pieces Quantity */
+
+UA_StatusCode
+readCurrentPiecesQuantity(UA_Server *server,
+                const UA_NodeId *sessionId, void *sessionContext,
+                const UA_NodeId *nodeId, void *nodeContext,
+                UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
+                UA_DataValue *dataValue) {
+    
+    UA_Int16 ua_pieces_quantity;
+    float distance;
+    esp_err_t res;
+
+    res = ultrasonic_measure(&ultrassonic_sensor, MAX_DISTANCE_CM, &distance);
+
+    if (res != ESP_OK){
+        printf("Error %d: ", res);
+        switch (res){
+            case ESP_ERR_ULTRASONIC_PING:
+                printf("Cannot ping (device is in invalid state)\n");
+                break;
+            case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
+                printf("Ping timeout (no device found)\n");
+                break;
+            case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
+                printf("Echo timeout (i.e. distance too big)\n");
+                break;
+            default:
+                printf("%s\n", esp_err_to_name(res));
+        }
+    } else {
+        ua_pieces_quantity = pieces_quantity(&distance);
+    }
+
+    UA_Variant_setScalarCopy(&dataValue->value, &ua_pieces_quantity,
+                             &UA_TYPES[UA_TYPES_INT16]);
+    dataValue->hasValue = true;
+    return UA_STATUSCODE_GOOD;
+}
+
+
+void
+addCurrentPiecesQuantityDataSourceVariable(UA_Server *server) {
+    UA_VariableAttributes attr = UA_VariableAttributes_default;
+    attr.displayName = UA_LOCALIZEDTEXT("en-US", "Pieces quantity");
+    attr.dataType = UA_TYPES[UA_TYPES_INT16].typeId;
+    attr.accessLevel = UA_ACCESSLEVELMASK_READ;
+
+    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "pieces quantity");
+    UA_QualifiedName currentName = UA_QUALIFIEDNAME(1, "Number of pieces on stock");
+    UA_NodeId parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
+    UA_NodeId parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
+    UA_NodeId variableTypeNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
+
+    UA_DataSource timeDataSource;
+    ultrasonic_init(&ultrassonic_sensor);
+    timeDataSource.read = readCurrentPiecesQuantity;
     UA_Server_addDataSourceVariableNode(server, currentNodeId, parentNodeId,
                                         parentReferenceNodeId, currentName,
                                         variableTypeNodeId, attr,

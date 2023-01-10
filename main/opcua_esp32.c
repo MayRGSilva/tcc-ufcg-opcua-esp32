@@ -19,6 +19,7 @@
 #include "open62541.h"
 #include "DHT22.h"
 #include "ultrasonic.h"
+#include "pieces_measurement.h"
 #include "model.h"
 
 #define EXAMPLE_ESP_MAXIMUM_RETRY 10
@@ -119,6 +120,7 @@ static void opcua_task(void *arg)
     addRelay0ControlNode(server);
     addRelay1ControlNode(server);
     addCurrentDistanceDataSourceVariable(server);
+    addCurrentPiecesQuantityDataSourceVariable(server);
 
     ESP_LOGI(TAG, "Heap Left : %d", xPortGetFreeHeapSize());
     UA_StatusCode retval = UA_Server_run_startup(server);
