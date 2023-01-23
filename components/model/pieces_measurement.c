@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pieces_measurement.h"
 
-#define EMPTY_STOCK 32
+#define EMPTY_STOCK 31.0
 #define FULL_STOCK 8.0
 #define PIECE_SIZE 2.3
 
@@ -34,7 +34,7 @@ int pieces_quantity(float *distance){
             quantity = 11;
         }
     }else{
-        printf("OUT OF RANGE");
+        printf("OUT OF RANGE\n");
     }
     return quantity;
 }
